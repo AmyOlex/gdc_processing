@@ -2,10 +2,10 @@
 #7/12/16
 #script to get the GDC manifest file.
 #this script first creates a payload string from the input UUIDs, then passes the string to the API.
-#INPUT: the list of UUIDs, one per line.
+#INPUT: a file with the list of UUIDs, one per line.
 
-infile=$*
+infile=$1
 
-payload=`{ echo -n 'ids='; cat myUUIDS.txt; } | tr '\n' ',' | sed -e 's/,$//' | sed -e 's/,/\&ids=/g'`
+payload=`{ echo -n 'ids='; cat $infile; } | tr '\n' ',' | sed -e 's/,$//' | sed -e 's/,/\&ids=/g'`
 
 curl --remote-name --remote-header-name --request POST 'https://gdc-api.nci.nih.gov/manifest' --data $payload

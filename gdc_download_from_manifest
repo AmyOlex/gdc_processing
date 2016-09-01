@@ -21,7 +21,7 @@
 ### Usage ###
 # To use this script simple run it in the working directory with the manifest file as the first argument.
 #
-# >> nohup ./gdc_download_from_manifest ./MANIFESTS/my_UUIDS.manifest ~/GDC_token.txt &
+# >> nohup ./gdc_download_from_manifest ./MANIFESTS/my_UUIDS.manifest ~/GDC_token.txt 2 &
 
 ##########################################
 
@@ -32,7 +32,7 @@ manifest=$1
 token_file=$2
 token=`cat $token_file`
 VERBOSE=1
-MAXJOBS=2
+MAXJOBS=$3
 
 
 ### Define Functions
@@ -84,8 +84,9 @@ fi
 
 ## Create the log file names
 manifest_base=`basename $manifest .txt`
-log=./LOGS/$manifest_base.download.log
-failed_log=./LOGS/$manifest_base.md5Failed.log
+logdate=$(date +%y%m%d%H%M%S)
+log=./LOGS/$manifest_base.$logdate.download.log
+failed_log=./LOGS/$manifest_base.$logdate.md5Failed.log
 
 ## Create the run logs
 touch $log
@@ -110,8 +111,15 @@ if [[ $VERBOSE = 1 ]]; then echo "$manifest exists." >> $log; fi
 tail --lines=+2 $manifest | while read id filename md5 size state
 do
 	maxjobs $MAXJOBS
-	echo "Starting to process UUID $id, file $filename" >> $log
-	download_file $id $md5 $filename &
+	echo "$id : Starting to process UUID $id, file $filename" >> $log
+	
+	if [[ ! -e $filename ]]
+	then
+		echo "$id : Warning, file $filename already exists...skipping." >> $log
+	else
+		echo "$id : Downloading file ..." >> $log
+		download_file $id $md5 $filename &
+	fi
 done
 
 
