@@ -9,4 +9,4 @@ infile=$1
 
 payload=`cat $infile | tr '\n' ',' | sed -e 's/,$//'`
 
-curl --remote-name --remote-header-name 'https://gdc-api.nci.nih.gov/manifest/$payload'
+curl --remote-name --remote-header-name 'https://gdc-api.nci.nih.gov/manifest/'$payload
