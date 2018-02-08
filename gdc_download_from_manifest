@@ -48,24 +48,24 @@ function download_file {
 	md5=$2
 	file=$3
 
-	echo "$id : Starting Download on `date`..." >> $log
+	echo "$file : Starting Download on `date`..." >> $log
 	cmd="curl --remote-name --remote-header-name --header \"X-Auth-Token: $token\" 'https://gdc-api.nci.nih.gov/data/$id'"
 	eval $cmd
-	echo "$id : Completed Download on `date`" >> $log
+	echo "$file : Completed Download on `date`" >> $log
 
-	echo "$id : Starting MD5SUM check on `date`..." >> $log
+	echo "$file : Starting MD5SUM check on `date`..." >> $log
 	
 	file_sum=$(md5sum $file | awk '{print $1}')
 
 	if [ "$md5" != "$file_sum" ]
 	then
 		echo "$id  $file" >> $failed_log
-		echo "$id : FAILED MD5SUM Check! Correct MD5: $md5 --- Calculated MD5: $file_sum" >> $log
+		echo "$file : FAILED MD5SUM Check! Correct MD5: $md5 --- Calculated MD5: $file_sum" >> $log
 	else
-		echo "$id : PASSED MD5SUM Check." >> $log
+		echo "$file : PASSED MD5SUM Check." >> $log
 	fi
 
-	echo "$id : Completed!" >> $log	
+	echo "$file : Completed!" >> $log	
 }
 
 
@@ -111,13 +111,13 @@ if [[ $VERBOSE = 1 ]]; then echo "$manifest exists." >> $log; fi
 tail --lines=+2 $manifest | while read id filename md5 size state
 do
 	maxjobs $MAXJOBS
-	echo "$id : Starting to process UUID $id, file $filename" >> $log
+	echo "$filename : Starting to process UUID $id, file $filename" >> $log
 	
-	if [[ ! -e $filename ]]
+	if [[ -e $filename ]]
 	then
-		echo "$id : Warning, file $filename already exists...skipping." >> $log
+		echo "$filename : Warning, file $filename already exists...skipping." >> $log
 	else
-		echo "$id : Downloading file ..." >> $log
+		echo "$filename : Downloading file ..." >> $log
 		download_file $id $md5 $filename &
 	fi
 done
