@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Amy Olex
+# 2/8/18
+# Bash Script: gdc_download_from_uuid_list
+#
+### Description ###
+# This script uses a list of UUIDs (one per line) to download raw data files from the GDC.
+# This script will download each file individually.
+# This script requires the you run init_gdc_directories.make in the working directory first.
+#
+### Input ###
+# The only input this file needs is the UUID list file and the name of the file where the GDC token is stored for controlled access downloads.
+#
+### Output ###
+# This script will output 1 log file named after the input UUID list file:
+# <manifest Name>.download.log
+#
+### Usage ###
+# To use this script simple run it in the working directory with the UUID list file as the first argument.
+#
+# USAGE: >> ./gdc_download_from_uuid_list ./MANIFESTS/<UUID file name> ~/GDC_token.txt <max jobs to run in parallel>
+# 
+# EXAMPLE: >> nohup ./gdc_download_from_uuid_list ./MANIFESTS/my_UUIDS.manifest ~/GDC_token.txt 2 &
+
+##########################################
+
+
+## Get the input manifest file name and some other control variables
+
+manifest=$1
+token_file=$2
+token=`cat $token_file`
+VERBOSE=1
+MAXJOBS=$3
+
+
+### Define Functions
+function maxjobs {
+	while [ `jobs | wc -l` -ge $1 ] 
+	do
+		sleep 2
+	done
+}
+
+function download_file {
+	id=$1
+
+	echo "$file : Starting Download on `date`..." >> $log
+	cmd="curl --remote-name --remote-header-name --header \"X-Auth-Token: $token\" 'https://gdc-api.nci.nih.gov/data/$id'"
+	eval $cmd
+	echo "$id : Completed Download on `date`" >> $log
+
+}
+
+
+## Create the log file names
+manifest_base=`basename $manifest .txt`
+logdate=$(date +%y%m%d%H%M%S)
+log=./$manifest_base.$logdate.download.log
+
+## Create the run logs
+touch $log
+
+## initilize the log file
+echo "GDC Download Log started on `date`" >> $log
+echo "Input Manifest File: $manifest" >> $log
+
+## Test to see if input manifest exists
+if [[ ! -e $manifest ]]
+then
+   echo "Error: $manifest does not exist."
+   exit 1
+fi
+if [[ $VERBOSE = 1 ]]; then echo "$manifest exists." >> $log; fi
+
+
+
+#### Start to process the file
+
+cat $manifest | while read uuid
+do
+	maxjobs $MAXJOBS
+	echo "$uuid : Starting to process UUID" >> $log
+	
+	download_file $uuid &
+done
+
+
