@@ -2,6 +2,7 @@
 
 # Amy Olex
 # 7/12/16
+# UPDATED: 10/15/19 fixed API URL
 # Bash Script: gdc_download_from_manifest
 #
 ### Description ###
@@ -49,7 +50,7 @@ function download_file {
 	file=$3
 
 	echo "$file : Starting Download on `date`..." >> $log
-	cmd="curl --remote-name --remote-header-name --header \"X-Auth-Token: $token\" 'https://gdc-api.nci.nih.gov/data/$id'"
+	cmd="curl --remote-name --remote-header-name --header \"X-Auth-Token: $token\" 'https://api.gdc.cancer.gov/data/$id'"
 	eval $cmd
 	echo "$file : Completed Download on `date`" >> $log
 
